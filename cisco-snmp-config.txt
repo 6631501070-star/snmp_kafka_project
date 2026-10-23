@@ -1,0 +1,24 @@
+! ===== Cisco Router R1 - SNMP Configuration =====
+! ใช้คำสั่งเหล่านี้ใน GNS3 Console ของ R1
+
+! กำหนด IP ที่ interface เชื่อมกับ Ubuntu (ipterm-1)
+interface FastEthernet1/1
+ ip address 192.168.222.130 255.255.255.0
+ no shutdown
+
+! เปิด SNMP community string "public" แบบ read-only
+snmp-server community public RO
+
+! (ตัวเลือกเสริม) เปิด SNMP trap ไปยัง Ubuntu collector
+snmp-server host 192.168.222.10 version 2c public
+
+! ตรวจสอบ SNMP
+show snmp
+show running-config | include snmp
+
+! ===== Cisco Router R2 =====
+interface FastEthernet1/1
+ ip address 192.168.222.131 255.255.255.0
+ no shutdown
+
+snmp-server community public RO

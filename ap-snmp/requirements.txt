@@ -1,0 +1,4 @@
+pysnmp>=4.4.12
+kafka-python>=2.0.2
+python-socketio>=5.10.0
+eventlet>=0.35.0

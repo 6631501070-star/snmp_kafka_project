@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NetPulse · SNMP Kafka Enterprise Dashboard</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Socket.io & Chart.js -->
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    /* Custom scrollbar for clean log */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }
+  </style>
+</head>
+<body class="h-full bg-slate-50 text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200">
+  <div class="min-h-full flex flex-col">
+
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        
+        <!-- Left: Logo & Brand -->
+        <div class="flex items-center space-x-3">
+          <div class="h-10 w-10 rounded-xl bg-blue-600 dark:bg-blue-500 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+            <i data-lucide="activity" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="font-bold text-lg tracking-tight text-slate-900 dark:text-white">NetPulse</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                Enterprise
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">SNMP · Apache Kafka · Real-time Stream</p>
+          </div>
+        </div>
+
+        <!-- Right: Status, Kafka Indicator & Theme Toggle -->
+        <div class="flex items-center space-x-3 sm:space-x-4">
+          <!-- Connection Status Pill -->
+          <div id="connection-pill" class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60 transition-all">
+            <span class="relative flex h-2 w-2">
+              <span id="ping-ring" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span id="ping-dot" class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span id="connection-text">Live Connected</span>
+          </div>
+
+          <!-- Kafka Topic Badge -->
+          <div class="hidden sm:inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-xs font-mono bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+            <i data-lucide="layers" class="w-3.5 h-3.5 text-slate-400"></i>
+            <span>topic: snmp-string</span>
+          </div>
+
+          <!-- Last Updated Timestamp -->
+          <div class="text-xs text-slate-400 dark:text-slate-500 hidden md:flex items-center space-x-1">
+            <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+            <span>Sync:</span>
+            <span id="last-update" class="font-mono text-slate-700 dark:text-slate-300">--:--:--</span>
+          </div>
+
+          <!-- Dark / Light Theme Toggle -->
+          <button id="theme-toggle" class="p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <i data-lucide="moon" id="theme-icon" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- Main Dashboard Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+      <!-- Executive Overview / KPI Cards -->
+      <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Metric 1: Monitored Nodes -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all hover:shadow">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Monitored Routers</span>
+            <span class="p-1.5 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
+              <i data-lucide="server" class="w-4 h-4"></i>
+            </span>
+          </div>
+          <div class="mt-2 flex items-baseline space-x-2">
+            <span id="kpi-nodes-count" class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">2</span>
+            <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center">
+              <i data-lucide="check" class="w-3 h-3 mr-0.5"></i> 100% Online
+            </span>
+          </div>
+          <p class="mt-1 text-xs text-slate-400 dark:text-slate-500">Cisco 7200 Series (R1, R2)</p>
+        </div>
+
+        <!-- Metric 2: Avg CPU Load -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all hover:shadow">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Average CPU Load</span>
+            <span class="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
+              <i data-lucide="cpu" class="w-4 h-4"></i>
+            </span>
+          </div>
+          <div class="mt-2 flex items-baseline space-x-2">
+            <span id="kpi-avg-cpu" class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">--%</span>
+            <span id="kpi-cpu-badge" class="text-xs font-medium px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">Normal</span>
+          </div>
+          <p class="mt-1 text-xs text-slate-400 dark:text-slate-500">5-second moving average</p>
+        </div>
+
+        <!-- Metric 3: Total Inbound Traffic -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all hover:shadow">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Ingress (Inbound)</span>
+            <span class="p-1.5 rounded-lg bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400">
+              <i data-lucide="arrow-down-left" class="w-4 h-4"></i>
+            </span>
+          </div>
+          <div class="mt-2 flex items-baseline space-x-2">
+            <span id="kpi-total-in" class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">--</span>
+          </div>
+          <p class="mt-1 text-xs text-slate-400 dark:text-slate-500 font-mono" id="kpi-total-in-raw">0 octets</p>
+        </div>
+
+        <!-- Metric 4: Total Outbound Traffic -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all hover:shadow">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Egress (Outbound)</span>
+            <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
+              <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+            </span>
+          </div>
+          <div class="mt-2 flex items-baseline space-x-2">
+            <span id="kpi-total-out" class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">--</span>
+          </div>
+          <p class="mt-1 text-xs text-slate-400 dark:text-slate-500 font-mono" id="kpi-total-out-raw">0 octets</p>
+        </div>
+      </section>
+
+      <!-- Router Cards Grid (R1 & R2) -->
+      <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Router 1 Card -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
+          <!-- Card Header -->
+          <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="w-3 h-3 rounded-full bg-blue-500 ring-4 ring-blue-100 dark:ring-blue-950"></span>
+              <div>
+                <div class="flex items-center space-x-2">
+                  <h2 class="font-semibold text-slate-900 dark:text-white text-base">Cisco Router R1</h2>
+                  <span class="font-mono text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">192.168.222.130</span>
+                </div>
+                <p id="R1-desc" class="text-xs text-slate-400 dark:text-slate-500 truncate max-w-xs">Cisco IOS Software, 7200 Software</p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                Active
+              </span>
+            </div>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-5 bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
+            <!-- CPU Load with progress bar -->
+            <div class="bg-white dark:bg-slate-800/80 p-3 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+              <div class="flex justify-between items-center text-xs text-slate-500 dark:text-slate-400">
+                <span>CPU Load</span>
+                <span id="R1-cpu-num" class="font-semibold text-slate-800 dark:text-slate-200 font-mono">0%</span>
+              </div>
+              <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 mt-2 overflow-hidden">
+                <div id="R1-cpu-bar" class="bg-blue-600 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Uptime -->
+            <div class="bg-white dark:bg-slate-800/80 p-3 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+              <div class="text-xs text-slate-500 dark:text-slate-400">System Uptime</div>
+              <div id="R1-uptime" class="font-semibold text-slate-800 dark:text-slate-200 font-mono text-sm mt-1 truncate">--</div>
+            </div>
+
+            <!-- Inbound Octets -->
+            <div class="bg-white dark:bg-slate-800/80 p-3 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+              <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                <span>Inbound (Rx)</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+              </div>
+              <div id="R1-in" class="font-semibold text-slate-800 dark:text-slate-200 font-mono text-sm mt-1 truncate">--</div>
+            </div>
+
+            <!-- Outbound Octets -->
+            <div class="bg-white dark:bg-slate-800/80 p-3 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+              <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                <span>Outbound (Tx)</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              </div>
+              <div id="R1-out" class="font-semibold text-slate-800 dark:text-slate-200 font-mono text-sm mt-1 truncate">--</div>
+            </div>
+          </div>
+
+          <!-- Chart Area -->
+          <div class="p-5 flex-1 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Traffic Throughput (Octets)</span>
+              <div class="flex items-center space-x-3 text-xs">
+                <span class="flex items-center text-slate-600 dark:text-slate-300">
+                  <span class="w-2.5 h-2.5 rounded-sm bg-blue-500 mr-1.5"></span> Rx In
+                </span>
+                <span class="flex items-center text-slate-600 dark:text-slate-300">
+                  <span class="w-2.5 h-2.5 rounded-sm bg-emerald-500 mr-1.5"></span> Tx Out
+                </span>
+              </div>
+            </div>
+            <div class="relative h-60 w-full">
+              <canvas id="chart-R1"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Router 2 Card -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
+          <!-- Card Header -->
+          <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="w-3 h-3 rounded-full bg-emerald-500 ring-4 ring-emerald-100 dark:ring-emerald-950"></span>
+              <div>
+                <div class="flex items-center space-x-2">
+                  <h2 class="font-semibold text-slate-900 dark:text-white text-base">Cisco Router R2</h2>
+                  <span class="font-mono text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">192.168.222.131</span>
+                </div>
+                <p id="R2-desc" class="text-xs text-slate-400 dark:text-slate-500 truncate max-w-xs">Cisco IOS Software, 7200 Software</p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                Active
+              </span>
+            </div>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-5 bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
+            <!-- CPU Load with progress bar -->
+            <div class="bg-white dark:bg-slate-800/80 p-3 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+              <div class="flex justify-between items-center text-xs text-slate-500 dark:text-slate-400">
+                <span>CPU Load</span>
+                <span id="R2-cpu-num" class="font-semibold text-slate-800 dark:text-slate-200 font-mono">0%</span>
+              </div>
+              <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 mt-2 overflow-hidden">
+                <div id="R2-cpu-bar" class="bg-emerald-600 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Uptime -->
+            <div class="bg-white dark:bg-slate-800/80 p-3 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+              <div class="text-xs text-slate-500 dark:text-slate-400">System Uptime</div>
+              <div id="R2-uptime" class="font-semibold text-slate-800 dark:text-slate-200 font-mono text-sm mt-1 truncate">--</div>
+            </div>
+
+            <!-- Inbound Octets -->
+            <div class="bg-white dark:bg-slate-800/80 p-3 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+              <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                <span>Inbound (Rx)</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+              </div>
+              <div id="R2-in" class="font-semibold text-slate-800 dark:text-slate-200 font-mono text-sm mt-1 truncate">--</div>
+            </div>
+
+            <!-- Outbound Octets -->
+            <div class="bg-white dark:bg-slate-800/80 p-3 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+              <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                <span>Outbound (Tx)</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              </div>
+              <div id="R2-out" class="font-semibold text-slate-800 dark:text-slate-200 font-mono text-sm mt-1 truncate">--</div>
+            </div>
+          </div>
+
+          <!-- Chart Area -->
+          <div class="p-5 flex-1 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Traffic Throughput (Octets)</span>
+              <div class="flex items-center space-x-3 text-xs">
+                <span class="flex items-center text-slate-600 dark:text-slate-300">
+                  <span class="w-2.5 h-2.5 rounded-sm bg-blue-500 mr-1.5"></span> Rx In
+                </span>
+                <span class="flex items-center text-slate-600 dark:text-slate-300">
+                  <span class="w-2.5 h-2.5 rounded-sm bg-emerald-500 mr-1.5"></span> Tx Out
+                </span>
+              </div>
+            </div>
+            <div class="relative h-60 w-full">
+              <canvas id="chart-R2"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Real-time Activity Stream & Event Log -->
+      <section class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="terminal" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+              Live Pipeline Stream Logs
+            </h3>
+            <span class="text-xs text-slate-400 dark:text-slate-500">(Auto-scroll)</span>
+          </div>
+          <button id="clear-log-btn" class="text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center space-x-1">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            <span>Clear Log</span>
+          </button>
+        </div>
+
+        <div id="log-list" class="divide-y divide-slate-100 dark:divide-slate-800/60 max-h-48 overflow-y-auto font-mono text-xs">
+          <div class="px-5 py-2.5 text-slate-400 dark:text-slate-500 italic">
+            Connecting to Kafka consumer stream...
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 py-4 text-center text-xs text-slate-400 dark:text-slate-500">
+      <p>SNMP Kafka Enterprise Real-time Architecture · Python pysnmp & kafka-python</p>
+    </footer>
+
+  </div>
+
+  <!-- Client-side Logic (Preserves Exact Socket.io Protocol) -->
+  <script>
+    // ── Theme Manager ─────────────────────────────────────────────────────────────
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    
+    function initTheme() {
+      if (localStorage.getItem('theme') === 'dark' || 
+          (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        themeIcon.setAttribute('data-lucide', 'sun');
+      } else {
+        document.documentElement.classList.remove('dark');
+        themeIcon.setAttribute('data-lucide', 'moon');
+      }
+      lucide.createIcons();
+    }
+    
+    themeToggleBtn.addEventListener('click', () => {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+        themeIcon.setAttribute('data-lucide', 'moon');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+        themeIcon.setAttribute('data-lucide', 'sun');
+      }
+      lucide.createIcons();
+      updateChartsTheme();
+    });
+
+    initTheme();
+
+    // ── Number & Byte Formatters ──────────────────────────────────────────────────
+    function formatBytes(bytes, decimals = 2) {
+      if (!+bytes) return '0 B';
+      const k = 1024;
+      const dm = decimals < 0 ? 0 : decimals;
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+    }
+
+    // ── Chart.js Setup ────────────────────────────────────────────────────────────
+    const MAX_POINTS = 16;
+    const charts = {};
+
+    function getChartColors() {
+      const isDark = document.documentElement.classList.contains('dark');
+      return {
+        grid: isDark ? 'rgba(51, 65, 85, 0.4)' : 'rgba(226, 232, 240, 0.8)',
+        ticks: isDark ? '#94a3b8' : '#64748b',
+        blueLine: '#3b82f6',
+        blueFill: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.08)',
+        greenLine: '#10b981',
+        greenFill: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.08)',
+      };
+    }
+
+    function createChart(canvasId) {
+      const el = document.getElementById(canvasId);
+      if (!el) return null;
+      const ctx = el.getContext('2d');
+      const colors = getChartColors();
+
+      return new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Inbound (Rx)',
+              data: [],
+              borderColor: colors.blueLine,
+              backgroundColor: colors.blueFill,
+              borderWidth: 2,
+              tension: 0.35,
+              fill: true,
+              pointRadius: 2,
+              pointHoverRadius: 5
+            },
+            {
+              label: 'Outbound (Tx)',
+              data: [],
+              borderColor: colors.greenLine,
+              backgroundColor: colors.greenFill,
+              borderWidth: 2,
+              tension: 0.35,
+              fill: true,
+              pointRadius: 2,
+              pointHoverRadius: 5
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.9)',
+              titleColor: '#e2e8f0',
+              bodyColor: '#e2e8f0',
+              borderColor: 'rgba(51, 65, 85, 0.5)',
+              borderWidth: 1,
+              padding: 10,
+              callbacks: {
+                label: function(context) {
+                  return ` ${context.dataset.label}: ${formatBytes(context.parsed.y)} (${context.parsed.y.toLocaleString()} B)`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: colors.grid, drawBorder: false },
+              ticks: { color: colors.ticks, font: { size: 10 } }
+            },
+            y: {
+              grid: { color: colors.grid, drawBorder: false },
+              ticks: {
+                color: colors.ticks,
+                font: { size: 10 },
+                callback: function(value) { return formatBytes(value, 0); }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    ['R1', 'R2'].forEach(r => {
+      charts[r] = createChart(`chart-${r}`);
+    });
+
+    function updateChartsTheme() {
+      const colors = getChartColors();
+      Object.values(charts).forEach(chart => {
+        if (!chart) return;
+        chart.options.scales.x.grid.color = colors.grid;
+        chart.options.scales.x.ticks.color = colors.ticks;
+        chart.options.scales.y.grid.color = colors.grid;
+        chart.options.scales.y.ticks.color = colors.ticks;
+        chart.data.datasets[0].backgroundColor = colors.blueFill;
+        chart.data.datasets[1].backgroundColor = colors.greenFill;
+        chart.update();
+      });
+    }
+
+    function addPointToChart(chart, label, inVal, outVal) {
+      if (!chart) return;
+      chart.data.labels.push(label);
+      chart.data.datasets[0].data.push(inVal);
+      chart.data.datasets[1].data.push(outVal);
+      if (chart.data.labels.length > MAX_POINTS) {
+        chart.data.labels.shift();
+        chart.data.datasets.forEach(d => d.data.shift());
+      }
+      chart.update();
+    }
+
+    // ── Event Log Stream ──────────────────────────────────────────────────────────
+    const logList = document.getElementById('log-list');
+    document.getElementById('clear-log-btn').addEventListener('click', () => {
+      logList.innerHTML = '<div class="px-5 py-2.5 text-slate-400 dark:text-slate-500 italic">Log buffer cleared. Waiting for new packets...</div>';
+    });
+
+    function appendLogEntry(router, cpu, inBytes, outBytes) {
+      const timeStr = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.className = 'px-5 py-2 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors';
+      
+      div.innerHTML = `
+        <div class="flex items-center space-x-3">
+          <span class="text-slate-400 text-xs">${timeStr}</span>
+          <span class="px-1.5 py-0.5 rounded text-[11px] font-semibold ${router === 'R1' ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'}">${router}</span>
+          <span class="text-slate-600 dark:text-slate-300 text-xs">SNMP Poll Received</span>
+        </div>
+        <div class="flex items-center space-x-3 text-xs font-mono text-slate-500 dark:text-slate-400">
+          <span>CPU: <strong class="text-slate-700 dark:text-slate-200">${cpu}%</strong></span>
+          <span>Rx: <strong class="text-blue-600 dark:text-blue-400">${formatBytes(inBytes)}</strong></span>
+          <span>Tx: <strong class="text-emerald-600 dark:text-emerald-400">${formatBytes(outBytes)}</strong></span>
+        </div>
+      `;
+      
+      logList.insertBefore(div, logList.firstChild);
+      // Keep maximum 40 log lines
+      while (logList.children.length > 40) {
+        logList.removeChild(logList.lastChild);
+      }
+    }
+
+    // ── Socket.io Connection & Events ─────────────────────────────────────────────
+    const socket = io();
+    const connPill = document.getElementById('connection-pill');
+    const connText = document.getElementById('connection-text');
+    const pingRing = document.getElementById('ping-ring');
+    const pingDot = document.getElementById('ping-dot');
+
+    socket.on('connect', () => {
+      connPill.className = 'inline-flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60 transition-all';
+      connText.textContent = 'Live Connected';
+      pingRing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75';
+      pingDot.className = 'relative inline-flex rounded-full h-2 w-2 bg-emerald-500';
+    });
+
+    socket.on('disconnect', () => {
+      connPill.className = 'inline-flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/60 transition-all';
+      connText.textContent = 'Disconnected';
+      pingRing.className = 'hidden';
+      pingDot.className = 'relative inline-flex rounded-full h-2 w-2 bg-rose-500';
+    });
+
+    // ── Process Incoming SNMP Data ────────────────────────────────────────────────
+    socket.on('snmp_data', (allRouters) => {
+      const nowStr = new Date().toLocaleTimeString();
+      document.getElementById('last-update').textContent = nowStr;
+
+      let totalInAll = 0;
+      let totalOutAll = 0;
+      let totalCpu = 0;
+      let routerCount = 0;
+
+      Object.entries(allRouters).forEach(([rName, d]) => {
+        routerCount++;
+        const inBytes  = parseInt(d.ifInOctets)  || 0;
+        const outBytes = parseInt(d.ifOutOctets) || 0;
+        const cpuNum   = parseInt(d.cpuLoad)    || 0;
+        const uptime   = d.sysUpTime || '--';
+        
+        totalInAll += inBytes;
+        totalOutAll += outBytes;
+        totalCpu += cpuNum;
+
+        // Label for chart X-axis
+        let timeLabel = nowStr;
+        if (d.timestamp) {
+          if (d.timestamp.includes('T')) {
+            timeLabel = d.timestamp.split('T')[1].split('.')[0];
+          } else {
+            timeLabel = d.timestamp;
+          }
+        }
+
+        // Update Router Card Elements
+        const safeText = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = val;
+        };
+
+        safeText(`${rName}-cpu-num`, `${cpuNum}%`);
+        safeText(`${rName}-uptime`, uptime);
+        safeText(`${rName}-in`, formatBytes(inBytes));
+        safeText(`${rName}-out`, formatBytes(outBytes));
+
+        if (d.sysDescr) {
+          safeText(`${rName}-desc`, d.sysDescr);
+        }
+
+        // CPU progress bar & dynamic color
+        const cpuBar = document.getElementById(`${rName}-cpu-bar`);
+        if (cpuBar) {
+          cpuBar.style.width = `${Math.min(cpuNum, 100)}%`;
+          if (cpuNum > 80) {
+            cpuBar.className = 'bg-rose-500 h-1.5 rounded-full transition-all duration-500';
+          } else if (cpuNum > 50) {
+            cpuBar.className = 'bg-amber-500 h-1.5 rounded-full transition-all duration-500';
+          } else {
+            cpuBar.className = (rName === 'R1' ? 'bg-blue-600' : 'bg-emerald-600') + ' h-1.5 rounded-full transition-all duration-500';
+          }
+        }
+
+        // Chart Point
+        if (charts[rName]) {
+          addPointToChart(charts[rName], timeLabel, inBytes, outBytes);
+        }
+
+        // Append to Live Log
+        appendLogEntry(rName, cpuNum, inBytes, outBytes);
+      });
+
+      // Update Executive KPI Summary
+      if (routerCount > 0) {
+        document.getElementById('kpi-nodes-count').textContent = routerCount;
+        const avgCpu = Math.round(totalCpu / routerCount);
+        document.getElementById('kpi-avg-cpu').textContent = `${avgCpu}%`;
+        
+        const cpuBadge = document.getElementById('kpi-cpu-badge');
+        if (avgCpu > 80) {
+          cpuBadge.className = 'text-xs font-medium px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400';
+          cpuBadge.textContent = 'High Load';
+        } else if (avgCpu > 50) {
+          cpuBadge.className = 'text-xs font-medium px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400';
+          cpuBadge.textContent = 'Moderate';
+        } else {
+          cpuBadge.className = 'text-xs font-medium px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400';
+          cpuBadge.textContent = 'Optimal';
+        }
+
+        document.getElementById('kpi-total-in').textContent = formatBytes(totalInAll);
+        document.getElementById('kpi-total-in-raw').textContent = `${totalInAll.toLocaleString()} octets`;
+
+        document.getElementById('kpi-total-out').textContent = formatBytes(totalOutAll);
+        document.getElementById('kpi-total-out-raw').textContent = `${totalOutAll.toLocaleString()} octets`;
+      }
+    });
+
+    // Initialize Lucide icons on DOM ready
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
