@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NetPulse · SNMP Kafka Enterprise Dashboard</title>
+  <title>NetPulse · SNMP Kafka Enterprise Dashboard (Teal & Cyan Edition)</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -17,11 +17,11 @@
           },
           colors: {
             brand: {
-              50: '#eff6ff',
-              100: '#dbeafe',
-              500: '#3b82f6',
-              600: '#2563eb',
-              700: '#1d4ed8',
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
             }
           }
         }
@@ -43,7 +43,6 @@
 
   <style>
     body { font-family: 'Inter', sans-serif; }
-    /* Custom scrollbar for clean log */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 9999px; }
@@ -59,14 +58,14 @@
         
         <!-- Left: Logo & Brand -->
         <div class="flex items-center space-x-3">
-          <div class="h-10 w-10 rounded-xl bg-blue-600 dark:bg-blue-500 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+          <div class="h-10 w-10 rounded-xl bg-teal-600 dark:bg-teal-500 flex items-center justify-center text-white shadow-md shadow-teal-500/20">
             <i data-lucide="activity" class="w-5 h-5"></i>
           </div>
           <div>
             <div class="flex items-center space-x-2">
               <span class="font-bold text-lg tracking-tight text-slate-900 dark:text-white">NetPulse</span>
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                Enterprise
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-50 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                Teal & Cyan Edition
               </span>
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400">SNMP · Apache Kafka · Real-time Stream</p>
@@ -76,10 +75,10 @@
         <!-- Right: Status, Kafka Indicator & Theme Toggle -->
         <div class="flex items-center space-x-3 sm:space-x-4">
           <!-- Connection Status Pill -->
-          <div id="connection-pill" class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60 transition-all">
+          <div id="connection-pill" class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200 dark:bg-teal-950/40 dark:text-teal-400 dark:border-teal-800/60 transition-all">
             <span class="relative flex h-2 w-2">
-              <span id="ping-ring" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span id="ping-dot" class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span id="ping-ring" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+              <span id="ping-dot" class="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
             </span>
             <span id="connection-text">Live Connected</span>
           </div>
@@ -115,13 +114,13 @@
         <div class="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all hover:shadow">
           <div class="flex items-center justify-between">
             <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Monitored Routers</span>
-            <span class="p-1.5 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
+            <span class="p-1.5 rounded-lg bg-teal-50 text-teal-600 dark:bg-teal-950/60 dark:text-teal-400">
               <i data-lucide="server" class="w-4 h-4"></i>
             </span>
           </div>
           <div class="mt-2 flex items-baseline space-x-2">
             <span id="kpi-nodes-count" class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">2</span>
-            <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center">
+            <span class="text-xs font-medium text-teal-600 dark:text-teal-400 flex items-center">
               <i data-lucide="check" class="w-3 h-3 mr-0.5"></i> 100% Online
             </span>
           </div>
@@ -132,13 +131,13 @@
         <div class="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all hover:shadow">
           <div class="flex items-center justify-between">
             <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Average CPU Load</span>
-            <span class="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
+            <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
               <i data-lucide="cpu" class="w-4 h-4"></i>
             </span>
           </div>
           <div class="mt-2 flex items-baseline space-x-2">
             <span id="kpi-avg-cpu" class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">--%</span>
-            <span id="kpi-cpu-badge" class="text-xs font-medium px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">Normal</span>
+            <span id="kpi-cpu-badge" class="text-xs font-medium px-1.5 py-0.5 rounded bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-400">Normal</span>
           </div>
           <p class="mt-1 text-xs text-slate-400 dark:text-slate-500">5-second moving average</p>
         </div>
@@ -147,7 +146,7 @@
         <div class="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all hover:shadow">
           <div class="flex items-center justify-between">
             <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Ingress (Inbound)</span>
-            <span class="p-1.5 rounded-lg bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400">
+            <span class="p-1.5 rounded-lg bg-cyan-50 text-cyan-600 dark:bg-cyan-950/60 dark:text-cyan-400">
               <i data-lucide="arrow-down-left" class="w-4 h-4"></i>
             </span>
           </div>
@@ -161,7 +160,7 @@
         <div class="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all hover:shadow">
           <div class="flex items-center justify-between">
             <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Egress (Outbound)</span>
-            <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
+            <span class="p-1.5 rounded-lg bg-teal-50 text-teal-600 dark:bg-teal-950/60 dark:text-teal-400">
               <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
             </span>
           </div>
@@ -180,7 +179,7 @@
           <!-- Card Header -->
           <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-              <span class="w-3 h-3 rounded-full bg-blue-500 ring-4 ring-blue-100 dark:ring-blue-950"></span>
+              <span class="w-3 h-3 rounded-full bg-teal-500 ring-4 ring-teal-100 dark:ring-teal-950"></span>
               <div>
                 <div class="flex items-center space-x-2">
                   <h2 class="font-semibold text-slate-900 dark:text-white text-base">Cisco Router R1</h2>
@@ -190,7 +189,7 @@
               </div>
             </div>
             <div class="flex items-center space-x-2">
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-400 border border-teal-200 dark:border-teal-800">
                 Active
               </span>
             </div>
@@ -205,7 +204,7 @@
                 <span id="R1-cpu-num" class="font-semibold text-slate-800 dark:text-slate-200 font-mono">0%</span>
               </div>
               <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 mt-2 overflow-hidden">
-                <div id="R1-cpu-bar" class="bg-blue-600 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                <div id="R1-cpu-bar" class="bg-teal-600 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
               </div>
             </div>
 
@@ -219,7 +218,7 @@
             <div class="bg-white dark:bg-slate-800/80 p-3 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
               <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
                 <span>Inbound (Rx)</span>
-                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
               </div>
               <div id="R1-in" class="font-semibold text-slate-800 dark:text-slate-200 font-mono text-sm mt-1 truncate">--</div>
             </div>
@@ -228,7 +227,7 @@
             <div class="bg-white dark:bg-slate-800/80 p-3 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
               <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
                 <span>Outbound (Tx)</span>
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
               </div>
               <div id="R1-out" class="font-semibold text-slate-800 dark:text-slate-200 font-mono text-sm mt-1 truncate">--</div>
             </div>
@@ -240,10 +239,10 @@
               <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Traffic Throughput (Octets)</span>
               <div class="flex items-center space-x-3 text-xs">
                 <span class="flex items-center text-slate-600 dark:text-slate-300">
-                  <span class="w-2.5 h-2.5 rounded-sm bg-blue-500 mr-1.5"></span> Rx In
+                  <span class="w-2.5 h-2.5 rounded-sm bg-cyan-500 mr-1.5"></span> Rx In
                 </span>
                 <span class="flex items-center text-slate-600 dark:text-slate-300">
-                  <span class="w-2.5 h-2.5 rounded-sm bg-emerald-500 mr-1.5"></span> Tx Out
+                  <span class="w-2.5 h-2.5 rounded-sm bg-teal-500 mr-1.5"></span> Tx Out
                 </span>
               </div>
             </div>
@@ -258,7 +257,7 @@
           <!-- Card Header -->
           <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-              <span class="w-3 h-3 rounded-full bg-emerald-500 ring-4 ring-emerald-100 dark:ring-emerald-950"></span>
+              <span class="w-3 h-3 rounded-full bg-cyan-500 ring-4 ring-cyan-100 dark:ring-cyan-950"></span>
               <div>
                 <div class="flex items-center space-x-2">
                   <h2 class="font-semibold text-slate-900 dark:text-white text-base">Cisco Router R2</h2>
@@ -268,7 +267,7 @@
               </div>
             </div>
             <div class="flex items-center space-x-2">
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-400 border border-teal-200 dark:border-teal-800">
                 Active
               </span>
             </div>
@@ -283,7 +282,7 @@
                 <span id="R2-cpu-num" class="font-semibold text-slate-800 dark:text-slate-200 font-mono">0%</span>
               </div>
               <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 mt-2 overflow-hidden">
-                <div id="R2-cpu-bar" class="bg-emerald-600 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                <div id="R2-cpu-bar" class="bg-cyan-600 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
               </div>
             </div>
 
@@ -297,7 +296,7 @@
             <div class="bg-white dark:bg-slate-800/80 p-3 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
               <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
                 <span>Inbound (Rx)</span>
-                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
               </div>
               <div id="R2-in" class="font-semibold text-slate-800 dark:text-slate-200 font-mono text-sm mt-1 truncate">--</div>
             </div>
@@ -306,7 +305,7 @@
             <div class="bg-white dark:bg-slate-800/80 p-3 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
               <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
                 <span>Outbound (Tx)</span>
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
               </div>
               <div id="R2-out" class="font-semibold text-slate-800 dark:text-slate-200 font-mono text-sm mt-1 truncate">--</div>
             </div>
@@ -318,10 +317,10 @@
               <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Traffic Throughput (Octets)</span>
               <div class="flex items-center space-x-3 text-xs">
                 <span class="flex items-center text-slate-600 dark:text-slate-300">
-                  <span class="w-2.5 h-2.5 rounded-sm bg-blue-500 mr-1.5"></span> Rx In
+                  <span class="w-2.5 h-2.5 rounded-sm bg-cyan-500 mr-1.5"></span> Rx In
                 </span>
                 <span class="flex items-center text-slate-600 dark:text-slate-300">
-                  <span class="w-2.5 h-2.5 rounded-sm bg-emerald-500 mr-1.5"></span> Tx Out
+                  <span class="w-2.5 h-2.5 rounded-sm bg-teal-500 mr-1.5"></span> Tx Out
                 </span>
               </div>
             </div>
@@ -360,7 +359,7 @@
 
     <!-- Footer -->
     <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 py-4 text-center text-xs text-slate-400 dark:text-slate-500">
-      <p>SNMP Kafka Enterprise Real-time Architecture · Python pysnmp & kafka-python</p>
+      <p>SNMP Kafka Enterprise Real-time Architecture · Teal & Cyan Theme Edition</p>
     </footer>
 
   </div>
@@ -409,7 +408,7 @@
       return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
     }
 
-    // ── Chart.js Setup ────────────────────────────────────────────────────────────
+    // ── Chart.js Setup (Teal & Cyan Palette) ──────────────────────────────────────
     const MAX_POINTS = 16;
     const charts = {};
 
@@ -418,10 +417,10 @@
       return {
         grid: isDark ? 'rgba(51, 65, 85, 0.4)' : 'rgba(226, 232, 240, 0.8)',
         ticks: isDark ? '#94a3b8' : '#64748b',
-        blueLine: '#3b82f6',
-        blueFill: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.08)',
-        greenLine: '#10b981',
-        greenFill: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.08)',
+        cyanLine: '#06b6d4',
+        cyanFill: isDark ? 'rgba(6, 182, 212, 0.15)' : 'rgba(6, 182, 212, 0.08)',
+        tealLine: '#0d9488',
+        tealFill: isDark ? 'rgba(13, 148, 136, 0.15)' : 'rgba(13, 148, 136, 0.08)',
       };
     }
 
@@ -439,8 +438,8 @@
             {
               label: 'Inbound (Rx)',
               data: [],
-              borderColor: colors.blueLine,
-              backgroundColor: colors.blueFill,
+              borderColor: colors.cyanLine,
+              backgroundColor: colors.cyanFill,
               borderWidth: 2,
               tension: 0.35,
               fill: true,
@@ -450,8 +449,8 @@
             {
               label: 'Outbound (Tx)',
               data: [],
-              borderColor: colors.greenLine,
-              backgroundColor: colors.greenFill,
+              borderColor: colors.tealLine,
+              backgroundColor: colors.tealFill,
               borderWidth: 2,
               tension: 0.35,
               fill: true,
@@ -474,7 +473,7 @@
               backgroundColor: 'rgba(15, 23, 42, 0.9)',
               titleColor: '#e2e8f0',
               bodyColor: '#e2e8f0',
-              borderColor: 'rgba(51, 65, 85, 0.5)',
+              borderColor: 'rgba(20, 184, 166, 0.4)',
               borderWidth: 1,
               padding: 10,
               callbacks: {
@@ -514,8 +513,8 @@
         chart.options.scales.x.ticks.color = colors.ticks;
         chart.options.scales.y.grid.color = colors.grid;
         chart.options.scales.y.ticks.color = colors.ticks;
-        chart.data.datasets[0].backgroundColor = colors.blueFill;
-        chart.data.datasets[1].backgroundColor = colors.greenFill;
+        chart.data.datasets[0].backgroundColor = colors.cyanFill;
+        chart.data.datasets[1].backgroundColor = colors.tealFill;
         chart.update();
       });
     }
@@ -546,18 +545,17 @@
       div.innerHTML = `
         <div class="flex items-center space-x-3">
           <span class="text-slate-400 text-xs">${timeStr}</span>
-          <span class="px-1.5 py-0.5 rounded text-[11px] font-semibold ${router === 'R1' ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'}">${router}</span>
+          <span class="px-1.5 py-0.5 rounded text-[11px] font-semibold ${router === 'R1' ? 'bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300' : 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300'}">${router}</span>
           <span class="text-slate-600 dark:text-slate-300 text-xs">SNMP Poll Received</span>
         </div>
         <div class="flex items-center space-x-3 text-xs font-mono text-slate-500 dark:text-slate-400">
           <span>CPU: <strong class="text-slate-700 dark:text-slate-200">${cpu}%</strong></span>
-          <span>Rx: <strong class="text-blue-600 dark:text-blue-400">${formatBytes(inBytes)}</strong></span>
-          <span>Tx: <strong class="text-emerald-600 dark:text-emerald-400">${formatBytes(outBytes)}</strong></span>
+          <span>Rx: <strong class="text-cyan-600 dark:text-cyan-400">${formatBytes(inBytes)}</strong></span>
+          <span>Tx: <strong class="text-teal-600 dark:text-teal-400">${formatBytes(outBytes)}</strong></span>
         </div>
       `;
       
       logList.insertBefore(div, logList.firstChild);
-      // Keep maximum 40 log lines
       while (logList.children.length > 40) {
         logList.removeChild(logList.lastChild);
       }
@@ -571,10 +569,10 @@
     const pingDot = document.getElementById('ping-dot');
 
     socket.on('connect', () => {
-      connPill.className = 'inline-flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60 transition-all';
+      connPill.className = 'inline-flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200 dark:bg-teal-950/40 dark:text-teal-400 dark:border-teal-800/60 transition-all';
       connText.textContent = 'Live Connected';
-      pingRing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75';
-      pingDot.className = 'relative inline-flex rounded-full h-2 w-2 bg-emerald-500';
+      pingRing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75';
+      pingDot.className = 'relative inline-flex rounded-full h-2 w-2 bg-teal-500';
     });
 
     socket.on('disconnect', () => {
@@ -605,7 +603,6 @@
         totalOutAll += outBytes;
         totalCpu += cpuNum;
 
-        // Label for chart X-axis
         let timeLabel = nowStr;
         if (d.timestamp) {
           if (d.timestamp.includes('T')) {
@@ -615,7 +612,6 @@
           }
         }
 
-        // Update Router Card Elements
         const safeText = (id, val) => {
           const el = document.getElementById(id);
           if (el) el.textContent = val;
@@ -630,7 +626,6 @@
           safeText(`${rName}-desc`, d.sysDescr);
         }
 
-        // CPU progress bar & dynamic color
         const cpuBar = document.getElementById(`${rName}-cpu-bar`);
         if (cpuBar) {
           cpuBar.style.width = `${Math.min(cpuNum, 100)}%`;
@@ -639,20 +634,17 @@
           } else if (cpuNum > 50) {
             cpuBar.className = 'bg-amber-500 h-1.5 rounded-full transition-all duration-500';
           } else {
-            cpuBar.className = (rName === 'R1' ? 'bg-blue-600' : 'bg-emerald-600') + ' h-1.5 rounded-full transition-all duration-500';
+            cpuBar.className = (rName === 'R1' ? 'bg-teal-600' : 'bg-cyan-600') + ' h-1.5 rounded-full transition-all duration-500';
           }
         }
 
-        // Chart Point
         if (charts[rName]) {
           addPointToChart(charts[rName], timeLabel, inBytes, outBytes);
         }
 
-        // Append to Live Log
         appendLogEntry(rName, cpuNum, inBytes, outBytes);
       });
 
-      // Update Executive KPI Summary
       if (routerCount > 0) {
         document.getElementById('kpi-nodes-count').textContent = routerCount;
         const avgCpu = Math.round(totalCpu / routerCount);
@@ -666,7 +658,7 @@
           cpuBadge.className = 'text-xs font-medium px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400';
           cpuBadge.textContent = 'Moderate';
         } else {
-          cpuBadge.className = 'text-xs font-medium px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400';
+          cpuBadge.className = 'text-xs font-medium px-1.5 py-0.5 rounded bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-400';
           cpuBadge.textContent = 'Optimal';
         }
 
@@ -678,7 +670,6 @@
       }
     });
 
-    // Initialize Lucide icons on DOM ready
     window.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
     });
